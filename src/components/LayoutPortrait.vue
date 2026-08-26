@@ -17,10 +17,10 @@
 
       <div class="landscape-middle">
         <div class="stats-wrapper stats-one">
-          <div class="date">friday, july 31</div>
-          <div class="display-name">Mark L.</div>
-          <div class="score">9,650</div>
-          <div class="placement">7th of 98 today</div>
+          <div class="date">{{ shareDetails.date }}</div>
+          <div class="display-name">{{ shareDetails.name }}</div>
+          <div class="score">{{ shareDetails.score }}</div>
+          <div class="placement">{{ shareDetails.placement }}</div>
         </div>
 
         <div class="stats-wrapper stats-two">
@@ -28,12 +28,12 @@
 
           <div class="statistics-flex">
             <div class="stat-hold">
-              <div class="top">8/10</div>
+              <div class="top">{{ shareDetails.correct }}</div>
               <div class="bottom">correct</div>
             </div>
 
             <div class="stat-hold">
-              <div class="top">5</div>
+              <div class="top">{{ shareDetails.streak }}</div>
               <div class="bottom">streak</div>
             </div>
 
@@ -79,17 +79,63 @@
   import ShareBackground from '@/assets/ts-micro-bg.png'
 
   const isSharing = ref(false)
+  const searchParams = new URLSearchParams(window.location.search)
+
+  const playerName = getUrlValue('name', 'Mark L.')
+  const score = formatNumber(getUrlValue('score', '9,650'))
+  const date = getUrlValue('date', 'friday, july 31')
+  const totalQuestionsRight = getUrlValue(
+    ['totalQuestionsRight', 'total_questions_right', 'right', 'correct'],
+    '8',
+  )
+  const totalQuestions = getUrlValue(['totalQuestions', 'total_questions', 'questions'], '10')
+  const streak = getUrlValue('streak', '5')
+  const rank = getUrlValue('rank', '7')
+  const rankOutOf = getUrlValue(['rankOutOf', 'rank_out_of', 'outOf', 'out_of'], '98')
 
   const shareDetails = {
-    date: 'friday, july 31',
-    name: 'Mark L.',
-    score: '9,650',
-    placement: '7th of 98 today',
-    correct: '8/10',
-    streak: '5',
+    date,
+    name: playerName,
+    score,
+    placement: `${formatOrdinal(rank)} of ${rankOutOf} today`,
+    correct: `${totalQuestionsRight}/${totalQuestions}`,
+    streak,
     title: 'Trackstar score',
-    text: 'I scored 9,650 on Trackstar. Tag @trackstarshow.',
+    text: `I scored ${score} on Trackstar. Tag @trackstarshow.`,
     fileName: 'trackstar-score.png',
+  }
+
+  function getUrlValue (keys: string | string[], fallback: string) {
+    const keyList = Array.isArray(keys) ? keys : [keys]
+
+    for (const key of keyList) {
+      const value = searchParams.get(key)
+      if (value) return value
+    }
+
+    return fallback
+  }
+
+  function formatNumber (value: string) {
+    const number = Number(value.replaceAll(',', ''))
+    return Number.isFinite(number) ? new Intl.NumberFormat('en-US').format(number) : value
+  }
+
+  function formatOrdinal (value: string) {
+    const number = Number(value)
+    if (!Number.isInteger(number)) return value
+
+    const suffixRules = new Intl.PluralRules('en-US', { type: 'ordinal' })
+    const suffixes: Record<Intl.LDMLPluralRule, string> = {
+      few: 'rd',
+      many: 'th',
+      one: 'st',
+      other: 'th',
+      two: 'nd',
+      zero: 'th',
+    }
+
+    return `${number}${suffixes[suffixRules.select(number)]}`
   }
 
   async function shareScore () {
