@@ -3,15 +3,15 @@
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="ts-logo landscape">
-          <img src="@/assets/trackstar-logo-landscape.png">
+          <img src="@/assets/trackstar-logo-landscape.png" />
         </div>
 
         <div class="ts-logo portrait">
-          <img src="@/assets/trackstar-logo.png">
+          <img src="@/assets/trackstar-logo.png" />
         </div>
 
         <div class="chase-logo">
-          <img :src="ChaseLogo">
+          <img :src="ChaseLogo" />
         </div>
       </div>
 
@@ -45,7 +45,7 @@
 
           <div class="medal-holder">
             <div class="medal-icon">
-              <img :src="TSMedal">
+              <img :src="TSMedal" />
             </div>
 
             <div class="medal-text">New Personal Best</div>
@@ -63,7 +63,7 @@
         <div class="share-text">Share your score and tag @trackstarshow</div>
 
         <div class="share-icon">
-          <img :src="ShareIcon">
+          <img :src="ShareIcon" />
         </div>
       </button>
     </div>
@@ -71,241 +71,254 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
-  import ChaseLogo from '@/assets/chase-logo-micro.svg'
-  import TSMedal from '@/assets/medal.svg'
-  import ShareIcon from '@/assets/share-icon.svg'
-  import TrackstarLogo from '@/assets/trackstar-logo.png'
-  import ShareBackground from '@/assets/ts-micro-bg.png'
+import { ref } from "vue";
+import ChaseLogo from "@/assets/chase-logo-micro.svg";
+import TSMedal from "@/assets/medal.svg";
+import ShareIcon from "@/assets/share-icon.svg";
+import TrackstarLogo from "@/assets/trackstar-logo.png";
+import ShareBackground from "@/assets/ts-micro-bg.png";
 
-  const isSharing = ref(false)
-  const searchParams = new URLSearchParams(window.location.search)
+const isSharing = ref(false);
+const searchParams = new URLSearchParams(window.location.search);
 
-  const playerName = getUrlValue('name', 'Mark L.')
-  const score = formatNumber(getUrlValue('score', '9,650'))
-  const date = getUrlValue('date', 'friday, july 31')
-  const totalQuestionsRight = getUrlValue(
-    ['totalQuestionsRight', 'total_questions_right', 'right', 'correct'],
-    '8',
-  )
-  const totalQuestions = getUrlValue(['totalQuestions', 'total_questions', 'questions'], '10')
-  const streak = getUrlValue('streak', '5')
-  const rank = getUrlValue('rank', '7')
-  const rankOutOf = getUrlValue(['rankOutOf', 'rank_out_of', 'outOf', 'out_of'], '98')
+const playerName = getUrlValue("name", "");
+const score = formatNumber(getUrlValue("score", ""));
+const date = getUrlValue("date", "");
+const totalQuestionsRight = getUrlValue(
+  ["totalQuestionsRight", "total_questions_right", "right", "correct"],
+  "",
+);
+const totalQuestions = getUrlValue(
+  ["totalQuestions", "total_questions", "questions"],
+  "10",
+);
+const streak = getUrlValue("streak", "5");
+const rank = getUrlValue("rank", "7");
+const rankOutOf = getUrlValue(
+  ["rankOutOf", "rank_out_of", "outOf", "out_of"],
+  "",
+);
 
-  const shareDetails = {
-    date,
-    name: playerName,
-    score,
-    placement: `${formatOrdinal(rank)} of ${rankOutOf} today`,
-    correct: `${totalQuestionsRight}/${totalQuestions}`,
-    streak,
-    title: 'Trackstar score',
-    text: `I scored ${score} on Trackstar. Tag @trackstarshow.`,
-    fileName: 'trackstar-score.png',
+const shareDetails = {
+  date,
+  name: playerName,
+  score,
+  placement: `${formatOrdinal(rank)} of ${rankOutOf} today`,
+  correct: `${totalQuestionsRight}/${totalQuestions}`,
+  streak,
+  title: "Trackstar score",
+  text: `I scored ${score} on Trackstar. Tag @trackstarshow.`,
+  fileName: "trackstar-score.png",
+};
+
+function getUrlValue(keys: string | string[], fallback: string) {
+  const keyList = Array.isArray(keys) ? keys : [keys];
+
+  for (const key of keyList) {
+    const value = searchParams.get(key);
+    if (value) return value;
   }
 
-  function getUrlValue (keys: string | string[], fallback: string) {
-    const keyList = Array.isArray(keys) ? keys : [keys]
+  return fallback;
+}
 
-    for (const key of keyList) {
-      const value = searchParams.get(key)
-      if (value) return value
+function formatNumber(value: string) {
+  const number = Number(value.replaceAll(",", ""));
+  return Number.isFinite(number)
+    ? new Intl.NumberFormat("en-US").format(number)
+    : value;
+}
+
+function formatOrdinal(value: string) {
+  const number = Number(value);
+  if (!Number.isInteger(number)) return value;
+
+  const suffixRules = new Intl.PluralRules("en-US", { type: "ordinal" });
+  const suffixes: Record<Intl.LDMLPluralRule, string> = {
+    few: "rd",
+    many: "th",
+    one: "st",
+    other: "th",
+    two: "nd",
+    zero: "th",
+  };
+
+  return `${number}${suffixes[suffixRules.select(number)]}`;
+}
+
+async function shareScore() {
+  if (isSharing.value) return;
+
+  isSharing.value = true;
+
+  try {
+    const blob = await createShareImage();
+    const file = new File([blob], shareDetails.fileName, { type: "image/png" });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: shareDetails.title,
+        text: shareDetails.text,
+      });
+      return;
     }
 
-    return fallback
-  }
-
-  function formatNumber (value: string) {
-    const number = Number(value.replaceAll(',', ''))
-    return Number.isFinite(number) ? new Intl.NumberFormat('en-US').format(number) : value
-  }
-
-  function formatOrdinal (value: string) {
-    const number = Number(value)
-    if (!Number.isInteger(number)) return value
-
-    const suffixRules = new Intl.PluralRules('en-US', { type: 'ordinal' })
-    const suffixes: Record<Intl.LDMLPluralRule, string> = {
-      few: 'rd',
-      many: 'th',
-      one: 'st',
-      other: 'th',
-      two: 'nd',
-      zero: 'th',
+    if (navigator.share) {
+      await navigator.share({
+        title: shareDetails.title,
+        text: shareDetails.text,
+        url: window.location.href,
+      });
+      return;
     }
 
-    return `${number}${suffixes[suffixRules.select(number)]}`
+    downloadBlob(blob, shareDetails.fileName);
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") return;
+    console.error("Unable to share score", error);
+  } finally {
+    isSharing.value = false;
   }
+}
 
-  async function shareScore () {
-    if (isSharing.value) return
+async function createShareImage() {
+  await document.fonts.ready;
 
-    isSharing.value = true
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
 
-    try {
-      const blob = await createShareImage()
-      const file = new File([blob], shareDetails.fileName, { type: 'image/png' })
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas is not supported.");
 
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: shareDetails.title,
-          text: shareDetails.text,
-        })
-        return
-      }
+  const [background, trackstarLogo, chaseLogo, medal] = await Promise.all([
+    loadImage(ShareBackground),
+    loadImage(TrackstarLogo),
+    loadImage(ChaseLogo),
+    loadImage(TSMedal),
+  ]);
 
-      if (navigator.share) {
-        await navigator.share({
-          title: shareDetails.title,
-          text: shareDetails.text,
-          url: window.location.href,
-        })
-        return
-      }
+  context.fillStyle = "#0c0c0c";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  drawImageContain(context, background, 372, 0, 708, 1920);
 
-      downloadBlob(blob, shareDetails.fileName)
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return
-      console.error('Unable to share score', error)
-    } finally {
-      isSharing.value = false
-    }
-  }
+  drawImageContain(context, trackstarLogo, 300, 104, 480, 278);
+  drawImageContain(context, chaseLogo, 308, 406, 364, 132);
 
-  async function createShareImage () {
-    await document.fonts.ready
+  context.textBaseline = "top";
+  context.fillStyle = "#ff5b00";
+  context.font = '900 44px "Paralucent Text", Arial, sans-serif';
+  context.fillText(shareDetails.date.toUpperCase(), 108, 720);
 
-    const canvas = document.createElement('canvas')
-    canvas.width = 1080
-    canvas.height = 1920
+  context.fillStyle = "#ffffff";
+  context.font = '900 142px "Paralucent Text", Arial, sans-serif';
+  context.fillText(shareDetails.name, 108, 805);
 
-    const context = canvas.getContext('2d')
-    if (!context) throw new Error('Canvas is not supported.')
+  context.fillStyle = "#ff5b00";
+  context.font = '900 168px "Paralucent Text", Arial, sans-serif';
+  context.fillText(shareDetails.score, 108, 952);
+  context.font = '900 88px "Paralucent Text", Arial, sans-serif';
+  context.fillText("pts", 682, 1024);
 
-    const [background, trackstarLogo, chaseLogo, medal] = await Promise.all([
-      loadImage(ShareBackground),
-      loadImage(TrackstarLogo),
-      loadImage(ChaseLogo),
-      loadImage(TSMedal),
-    ])
+  context.fillStyle = "#ffffff";
+  context.font = '900 64px "Paralucent Text", Arial, sans-serif';
+  context.fillText(shareDetails.placement, 108, 1160);
 
-    context.fillStyle = '#0c0c0c'
-    context.fillRect(0, 0, canvas.width, canvas.height)
-    drawImageContain(context, background, 372, 0, 708, 1920)
+  context.strokeStyle = "#808285";
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(108, 1268);
+  context.lineTo(972, 1268);
+  context.stroke();
 
-    drawImageContain(context, trackstarLogo, 300, 104, 480, 278)
-    drawImageContain(context, chaseLogo, 308, 406, 364, 132)
+  context.fillStyle = "#6d6e71";
+  context.font = '700 44px "Paralucent Text", Arial, sans-serif';
+  context.fillText("STATISTICS", 108, 1336);
 
-    context.textBaseline = 'top'
-    context.fillStyle = '#ff5b00'
-    context.font = '900 44px "Paralucent Text", Arial, sans-serif'
-    context.fillText(shareDetails.date.toUpperCase(), 108, 720)
+  context.textAlign = "center";
+  drawStat(context, shareDetails.correct, "CORRECT", 220, 1414);
+  drawStat(context, shareDetails.streak, "STREAK", 508, 1414);
 
-    context.fillStyle = '#ffffff'
-    context.font = '900 142px "Paralucent Text", Arial, sans-serif'
-    context.fillText(shareDetails.name, 108, 805)
+  context.textAlign = "left";
+  drawImageContain(context, medal, 108, 1616, 92, 92);
+  context.fillStyle = "#ffffff";
+  context.font = '900 52px "Paralucent Text", Arial, sans-serif';
+  context.fillText("New Personal Best", 232, 1636);
 
-    context.fillStyle = '#ff5b00'
-    context.font = '900 168px "Paralucent Text", Arial, sans-serif'
-    context.fillText(shareDetails.score, 108, 952)
-    context.font = '900 88px "Paralucent Text", Arial, sans-serif'
-    context.fillText('pts', 682, 1024)
+  context.textAlign = "center";
+  context.fillStyle = "#ffffff";
+  context.font = '300 44px "Paralucent Text", Arial, sans-serif';
+  context.fillText("Share your score and tag @trackstarshow", 540, 1790);
 
-    context.fillStyle = '#ffffff'
-    context.font = '900 64px "Paralucent Text", Arial, sans-serif'
-    context.fillText(shareDetails.placement, 108, 1160)
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/png", 0.95);
+  });
 
-    context.strokeStyle = '#808285'
-    context.lineWidth = 2
-    context.beginPath()
-    context.moveTo(108, 1268)
-    context.lineTo(972, 1268)
-    context.stroke()
+  if (!blob) throw new Error("Unable to create share image.");
+  return blob;
+}
 
-    context.fillStyle = '#6d6e71'
-    context.font = '700 44px "Paralucent Text", Arial, sans-serif'
-    context.fillText('STATISTICS', 108, 1336)
+function drawStat(
+  context: CanvasRenderingContext2D,
+  value: string,
+  label: string,
+  x: number,
+  y: number,
+) {
+  context.fillStyle = "#ffffff";
+  context.font = '900 86px "Paralucent Text", Arial, sans-serif';
+  context.fillText(value, x, y);
+  context.fillStyle = "#6d6e71";
+  context.font = '700 36px "Paralucent Text", Arial, sans-serif';
+  context.fillText(label, x, y + 100);
+}
 
-    context.textAlign = 'center'
-    drawStat(context, shareDetails.correct, 'CORRECT', 220, 1414)
-    drawStat(context, shareDetails.streak, 'STREAK', 508, 1414)
+function drawImageContain(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.min(
+    width / image.naturalWidth,
+    height / image.naturalHeight,
+  );
+  const drawWidth = image.naturalWidth * scale;
+  const drawHeight = image.naturalHeight * scale;
 
-    context.textAlign = 'left'
-    drawImageContain(context, medal, 108, 1616, 92, 92)
-    context.fillStyle = '#ffffff'
-    context.font = '900 52px "Paralucent Text", Arial, sans-serif'
-    context.fillText('New Personal Best', 232, 1636)
+  context.drawImage(
+    image,
+    x + (width - drawWidth) / 2,
+    y + (height - drawHeight) / 2,
+    drawWidth,
+    drawHeight,
+  );
+}
 
-    context.textAlign = 'center'
-    context.fillStyle = '#ffffff'
-    context.font = '300 44px "Paralucent Text", Arial, sans-serif'
-    context.fillText('Share your score and tag @trackstarshow', 540, 1790)
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", () =>
+      reject(new Error(`Unable to load ${src}`)),
+    );
+    image.src = src;
+  });
+}
 
-    const blob = await new Promise<Blob | null>(resolve => {
-      canvas.toBlob(resolve, 'image/png', 0.95)
-    })
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-    if (!blob) throw new Error('Unable to create share image.')
-    return blob
-  }
+  link.href = url;
+  link.download = fileName;
+  link.click();
 
-  function drawStat (
-    context: CanvasRenderingContext2D,
-    value: string,
-    label: string,
-    x: number,
-    y: number,
-  ) {
-    context.fillStyle = '#ffffff'
-    context.font = '900 86px "Paralucent Text", Arial, sans-serif'
-    context.fillText(value, x, y)
-    context.fillStyle = '#6d6e71'
-    context.font = '700 36px "Paralucent Text", Arial, sans-serif'
-    context.fillText(label, x, y + 100)
-  }
-
-  function drawImageContain (
-    context: CanvasRenderingContext2D,
-    image: HTMLImageElement,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ) {
-    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight)
-    const drawWidth = image.naturalWidth * scale
-    const drawHeight = image.naturalHeight * scale
-
-    context.drawImage(
-      image,
-      x + (width - drawWidth) / 2,
-      y + (height - drawHeight) / 2,
-      drawWidth,
-      drawHeight,
-    )
-  }
-
-  function loadImage (src: string) {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image()
-      image.addEventListener('load', () => resolve(image))
-      image.addEventListener('error', () => reject(new Error(`Unable to load ${src}`)))
-      image.src = src
-    })
-  }
-
-  function downloadBlob (blob: Blob, fileName: string) {
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-
-    link.href = url
-    link.download = fileName
-    link.click()
-
-    URL.revokeObjectURL(url)
-  }
+  URL.revokeObjectURL(url);
+}
 </script>
 
 <style lang="scss" scoped>
