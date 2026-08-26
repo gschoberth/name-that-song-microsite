@@ -11,6 +11,22 @@ import 'vuetify/styles'
 export default createVuetify({
   theme: {
     defaultTheme: 'system',
+    themes: {
+      light: {
+        dark: false,
+        colors: {
+          'on-background': '#ffffff',
+          'on-surface': '#ffffff',
+        },
+      },
+      dark: {
+        dark: true,
+        colors: {
+          'on-background': '#ffffff',
+          'on-surface': '#ffffff',
+        },
+      },
+    },
     utilities: false,
   },
   display: {

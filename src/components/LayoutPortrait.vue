@@ -3,15 +3,18 @@
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="ts-logo landscape">
-          <img src="@/assets/trackstar-logo-landscape.png" />
+          <img src="@/assets/trackstar-logo-landscape.png">
         </div>
+
         <div class="ts-logo portrait">
-          <img src="@/assets/trackstar-logo.png" />
+          <img src="@/assets/trackstar-logo.png">
         </div>
+
         <div class="chase-logo">
-          <img :src="ChaseLogo" />
+          <img :src="ChaseLogo">
         </div>
       </div>
+
       <div class="landscape-middle">
         <div class="stats-wrapper stats-one">
           <div class="date">friday, july 31</div>
@@ -19,45 +22,244 @@
           <div class="score">9,650</div>
           <div class="placement">7th of 98 today</div>
         </div>
+
         <div class="stats-wrapper stats-two">
           <div class="statistics-title">statistics</div>
+
           <div class="statistics-flex">
             <div class="stat-hold">
               <div class="top">8/10</div>
               <div class="bottom">correct</div>
             </div>
+
             <div class="stat-hold">
               <div class="top">5</div>
               <div class="bottom">streak</div>
             </div>
+
             <div class="stat-hold">
               <!-- <div class="top">8/10</div>
             <div class="bottom">fastest</div> -->
             </div>
           </div>
+
           <div class="medal-holder">
             <div class="medal-icon">
-              <img :src="TSMedal" />
+              <img :src="TSMedal">
             </div>
+
             <div class="medal-text">New Personal Best</div>
           </div>
         </div>
       </div>
-      <div class="share-wrapper">
+
+      <button
+        aria-label="Share your score"
+        class="share-wrapper"
+        :disabled="isSharing"
+        type="button"
+        @click="shareScore"
+      >
         <div class="share-text">Share your score and tag @trackstarshow</div>
+
         <div class="share-icon">
-          <img :src="ShareIcon" />
+          <img :src="ShareIcon">
         </div>
-      </div>
+      </button>
     </div>
   </div>
 </template>
 
-<script lang="js" setup>
-import TSLogo from "@/assets/ts-logo-micro-portrait.svg";
-import ChaseLogo from "@/assets/chase-logo-micro.svg";
-import TSMedal from "@/assets/medal.svg";
-import ShareIcon from "@/assets/share-icon.svg";
+<script lang="ts" setup>
+  import { ref } from 'vue'
+  import ChaseLogo from '@/assets/chase-logo-micro.svg'
+  import TSMedal from '@/assets/medal.svg'
+  import ShareIcon from '@/assets/share-icon.svg'
+  import TrackstarLogo from '@/assets/trackstar-logo.png'
+  import ShareBackground from '@/assets/ts-micro-bg.png'
+
+  const isSharing = ref(false)
+
+  const shareDetails = {
+    date: 'friday, july 31',
+    name: 'Mark L.',
+    score: '9,650',
+    placement: '7th of 98 today',
+    correct: '8/10',
+    streak: '5',
+    title: 'Trackstar score',
+    text: 'I scored 9,650 on Trackstar. Tag @trackstarshow.',
+    fileName: 'trackstar-score.png',
+  }
+
+  async function shareScore () {
+    if (isSharing.value) return
+
+    isSharing.value = true
+
+    try {
+      const blob = await createShareImage()
+      const file = new File([blob], shareDetails.fileName, { type: 'image/png' })
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: shareDetails.title,
+          text: shareDetails.text,
+        })
+        return
+      }
+
+      if (navigator.share) {
+        await navigator.share({
+          title: shareDetails.title,
+          text: shareDetails.text,
+          url: window.location.href,
+        })
+        return
+      }
+
+      downloadBlob(blob, shareDetails.fileName)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      console.error('Unable to share score', error)
+    } finally {
+      isSharing.value = false
+    }
+  }
+
+  async function createShareImage () {
+    await document.fonts.ready
+
+    const canvas = document.createElement('canvas')
+    canvas.width = 1080
+    canvas.height = 1920
+
+    const context = canvas.getContext('2d')
+    if (!context) throw new Error('Canvas is not supported.')
+
+    const [background, trackstarLogo, chaseLogo, medal] = await Promise.all([
+      loadImage(ShareBackground),
+      loadImage(TrackstarLogo),
+      loadImage(ChaseLogo),
+      loadImage(TSMedal),
+    ])
+
+    context.fillStyle = '#0c0c0c'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    drawImageContain(context, background, 372, 0, 708, 1920)
+
+    drawImageContain(context, trackstarLogo, 300, 104, 480, 278)
+    drawImageContain(context, chaseLogo, 308, 406, 364, 132)
+
+    context.textBaseline = 'top'
+    context.fillStyle = '#ff5b00'
+    context.font = '900 44px "Paralucent Text", Arial, sans-serif'
+    context.fillText(shareDetails.date.toUpperCase(), 108, 720)
+
+    context.fillStyle = '#ffffff'
+    context.font = '900 142px "Paralucent Text", Arial, sans-serif'
+    context.fillText(shareDetails.name, 108, 805)
+
+    context.fillStyle = '#ff5b00'
+    context.font = '900 168px "Paralucent Text", Arial, sans-serif'
+    context.fillText(shareDetails.score, 108, 952)
+    context.font = '900 88px "Paralucent Text", Arial, sans-serif'
+    context.fillText('pts', 682, 1024)
+
+    context.fillStyle = '#ffffff'
+    context.font = '900 64px "Paralucent Text", Arial, sans-serif'
+    context.fillText(shareDetails.placement, 108, 1160)
+
+    context.strokeStyle = '#808285'
+    context.lineWidth = 2
+    context.beginPath()
+    context.moveTo(108, 1268)
+    context.lineTo(972, 1268)
+    context.stroke()
+
+    context.fillStyle = '#6d6e71'
+    context.font = '700 44px "Paralucent Text", Arial, sans-serif'
+    context.fillText('STATISTICS', 108, 1336)
+
+    context.textAlign = 'center'
+    drawStat(context, shareDetails.correct, 'CORRECT', 220, 1414)
+    drawStat(context, shareDetails.streak, 'STREAK', 508, 1414)
+
+    context.textAlign = 'left'
+    drawImageContain(context, medal, 108, 1616, 92, 92)
+    context.fillStyle = '#ffffff'
+    context.font = '900 52px "Paralucent Text", Arial, sans-serif'
+    context.fillText('New Personal Best', 232, 1636)
+
+    context.textAlign = 'center'
+    context.fillStyle = '#ffffff'
+    context.font = '300 44px "Paralucent Text", Arial, sans-serif'
+    context.fillText('Share your score and tag @trackstarshow', 540, 1790)
+
+    const blob = await new Promise<Blob | null>(resolve => {
+      canvas.toBlob(resolve, 'image/png', 0.95)
+    })
+
+    if (!blob) throw new Error('Unable to create share image.')
+    return blob
+  }
+
+  function drawStat (
+    context: CanvasRenderingContext2D,
+    value: string,
+    label: string,
+    x: number,
+    y: number,
+  ) {
+    context.fillStyle = '#ffffff'
+    context.font = '900 86px "Paralucent Text", Arial, sans-serif'
+    context.fillText(value, x, y)
+    context.fillStyle = '#6d6e71'
+    context.font = '700 36px "Paralucent Text", Arial, sans-serif'
+    context.fillText(label, x, y + 100)
+  }
+
+  function drawImageContain (
+    context: CanvasRenderingContext2D,
+    image: HTMLImageElement,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight)
+    const drawWidth = image.naturalWidth * scale
+    const drawHeight = image.naturalHeight * scale
+
+    context.drawImage(
+      image,
+      x + (width - drawWidth) / 2,
+      y + (height - drawHeight) / 2,
+      drawWidth,
+      drawHeight,
+    )
+  }
+
+  function loadImage (src: string) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image()
+      image.addEventListener('load', () => resolve(image))
+      image.addEventListener('error', () => reject(new Error(`Unable to load ${src}`)))
+      image.src = src
+    })
+  }
+
+  function downloadBlob (blob: Blob, fileName: string) {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = fileName
+    link.click()
+
+    URL.revokeObjectURL(url)
+  }
 </script>
 
 <style lang="scss" scoped>
@@ -271,11 +473,24 @@ import ShareIcon from "@/assets/share-icon.svg";
 }
 
 .share-wrapper {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   margin-top: 3cqmin;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+
   .share-text {
     font-size: 5cqmin;
     font-weight: 300;
