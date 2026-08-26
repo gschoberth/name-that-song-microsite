@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app">
+  <v-app id="app" theme="dark">
     <v-main>
       <router-view />
     </v-main>
@@ -14,6 +14,8 @@ html {
   min-height: 100dvh;
   width: 100dvw;
   background-color: #0c0c0c;
+  color: #fff;
+  color-scheme: dark;
 }
 
 body {
@@ -21,6 +23,14 @@ body {
 }
 
 #app {
+  color: #fff;
+  background-color: #0c0c0c;
+}
+
+.v-application,
+.v-application__wrap,
+.v-main {
+  color: #fff;
   background-color: #0c0c0c;
 }
 </style>
