@@ -2,6 +2,6 @@
   <LayoutPortrait />
 </template>
 
-<script lang="ts" setup>
+<script lang="js" setup>
 import LayoutPortrait from "@/components/LayoutPortrait.vue";
 </script>
