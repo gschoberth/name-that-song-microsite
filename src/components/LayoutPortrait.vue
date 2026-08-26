@@ -43,7 +43,7 @@
             </div>
           </div>
 
-          <div class="medal-holder">
+          <div v-if="isPersonalBest" class="medal-holder">
             <div class="medal-icon">
               <img :src="TSMedal" />
             </div>
@@ -98,6 +98,7 @@ const rankOutOf = getUrlValue(
   ["rankOutOf", "rank_out_of", "outOf", "out_of"],
   "",
 );
+const isPersonalBest = getUrlFlag("best");
 
 const shareDetails = {
   date,
@@ -120,6 +121,10 @@ function getUrlValue(keys: string | string[], fallback: string) {
   }
 
   return fallback;
+}
+
+function getUrlFlag(key: string) {
+  return searchParams.get(key)?.toLowerCase() === "true";
 }
 
 function formatNumber(value: string) {
@@ -240,11 +245,13 @@ async function createShareImage() {
   drawStat(context, shareDetails.correct, "CORRECT", 220, 1414);
   drawStat(context, shareDetails.streak, "STREAK", 508, 1414);
 
-  context.textAlign = "left";
-  drawImageContain(context, medal, 108, 1616, 92, 92);
-  context.fillStyle = "#ffffff";
-  context.font = '900 52px "Paralucent Text", Arial, sans-serif';
-  context.fillText("New Personal Best", 232, 1636);
+  if (isPersonalBest) {
+    context.textAlign = "left";
+    drawImageContain(context, medal, 108, 1616, 92, 92);
+    context.fillStyle = "#ffffff";
+    context.font = '900 52px "Paralucent Text", Arial, sans-serif';
+    context.fillText("New Personal Best", 232, 1636);
+  }
 
   context.textAlign = "center";
   context.fillStyle = "#ffffff";
