@@ -387,6 +387,7 @@
   min-width: 100%;
   container-type: inline-size;
   position: relative;
+  color: #fff;
 }
 
 .wrapper {
@@ -552,5 +553,13 @@
       width: 100%;
     }
   }
+}
+
+.display-name,
+.placement,
+.statistics-flex .top,
+.medal-text,
+.share-text {
+  color: #fff;
 }
 </style>
