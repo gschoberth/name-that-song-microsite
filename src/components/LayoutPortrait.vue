@@ -331,8 +331,9 @@ function downloadBlob(blob: Blob, fileName: string) {
 <style lang="scss" scoped>
 @media (orientation: portrait) {
   .card-container {
-    background-image: url("@/assets/ts-micro-bg.png");
-    background-size: 82cqmin auto;
+    // background-image: url("@/assets/ts-micro-bg.png");
+    background-image: url("@/assets/ts_bg-portrait.jpg");
+    background-size: 70cqmin auto;
     background-color: #0c0c0c;
     background-position-x: 100%;
   }
@@ -361,8 +362,8 @@ function downloadBlob(blob: Blob, fileName: string) {
 
 @media (orientation: landscape) {
   .card-container {
-    background-image: url("@/assets/ts-micro-bg.png");
-    background-size: 100dvh auto;
+    background-image: url("@/assets/ts_bg-landscape.jpg");
+    background-size: contain;
     background-color: #0c0c0c;
     background-position-x: 100%;
   }
