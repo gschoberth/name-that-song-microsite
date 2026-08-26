@@ -107,7 +107,7 @@ const shareDetails = {
   correct: `${totalQuestionsRight}/${totalQuestions}`,
   streak,
   title: "Trackstar score",
-  text: `I scored ${score} on Trackstar. Tag @trackstarshow.`,
+  text: `I scored ${score} on Trackstar. @trackstarshow.`,
   fileName: "trackstar-score.png",
 };
 
