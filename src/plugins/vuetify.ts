@@ -15,15 +15,31 @@ export default createVuetify({
       light: {
         dark: false,
         colors: {
+          'background': '#0c0c0c',
           'on-background': '#ffffff',
+          'on-primary': '#ffffff',
           'on-surface': '#ffffff',
+          'primary': '#ff5b00',
+          'surface': '#0c0c0c',
+        },
+        variables: {
+          'high-emphasis-opacity': 1,
+          'medium-emphasis-opacity': 1,
         },
       },
       dark: {
         dark: true,
         colors: {
+          'background': '#0c0c0c',
           'on-background': '#ffffff',
+          'on-primary': '#ffffff',
           'on-surface': '#ffffff',
+          'primary': '#ff5b00',
+          'surface': '#0c0c0c',
+        },
+        variables: {
+          'high-emphasis-opacity': 1,
+          'medium-emphasis-opacity': 1,
         },
       },
     },
